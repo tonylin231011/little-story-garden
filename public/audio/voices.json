@@ -1,0 +1,20 @@
+{
+  "default": "xiaorou",
+  "disclosure": "腾讯云 AI 合成语音，非原版录音",
+  "voices": [
+    {
+      "id": "xiaorou",
+      "name": "智小柔 · 超自然女声",
+      "tier": "超自然大模型",
+      "voice_id": 502001,
+      "manifest": "/audio/manifest-xiaorou.json"
+    },
+    {
+      "id": "winny",
+      "name": "WeWinny · 英语女声",
+      "tier": "大模型",
+      "voice_id": 501009,
+      "manifest": "/audio/manifest-winny.json"
+    }
+  ]
+}

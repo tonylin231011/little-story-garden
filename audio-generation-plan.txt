@@ -1,0 +1,105 @@
+Destination: Tencent Cloud TTS (tts.tencentcloudapi.com)
+Voices: 502001 Xiaorou, 501009 WeWinny
+100 unique English texts, 1937 characters per voice, 3874 characters in total.
+No pictures, Chinese parent notes or child information are sent.
+
+1. Hide and Seek.
+2. Can you see us?
+3. tree
+4. box
+5. wheelbarrow
+6. child under the wheelbarrow
+7. window
+8. girl in the window
+9. child behind the fence
+10. person in the tree
+11. Can you see me?
+12. Yes, I can see you.
+13. boy in orange
+14. Yes, we can see you.
+15. children outside
+16. child in the box
+17. children standing together
+18. person still in the tree
+19. We can all see Dad.
+20. Dad
+21. What game do you think they will play?
+22. Hide and seek
+23. Football
+24. Drawing
+25. Yes! Hide and seek!
+26. Let's look at the title again.
+27. Can you point to the tree?
+28. Great! That's the tree.
+29. Try again. Find the big tree.
+30. Can you find the box?
+31. Yes! That's the box.
+32. Look near the bottom of the picture.
+33. Can you find someone under the wheelbarrow?
+34. You found the hiding child!
+35. Look under the wheelbarrow.
+36. under
+37. What are the children doing?
+38. Hiding
+39. Eating
+40. Sleeping
+41. Yes. They are hiding!
+42. Look carefully. Some children are hard to see.
+43. Nice! Can you see me?
+44. Can you point to the wheelbarrow?
+45. Yes! That's the wheelbarrow.
+46. Look at the orange wheelbarrow.
+47. Can you find the girl in the window?
+48. You found her!
+49. Look at the window.
+50. Who has been found?
+51. The child under the wheelbarrow
+52. A cat
+53. That's right!
+54. Look near the wheelbarrow.
+55. Can you point to the box?
+56. Look on the left.
+57. Can you find someone in the tree?
+58. Good spotting!
+59. Look up in the tree.
+60. Who is in the window?
+61. A girl
+62. Yes! The girl is in the window.
+63. I can see you. We can see you.
+64. Can you point to the child in the box?
+65. Yes! You found the child.
+66. Look inside the big box.
+67. What is the child in?
+68. A box
+69. A bed
+70. A boat
+71. Yes! A box.
+72. Look at the picture again.
+73. How do the children look?
+74. Happy
+75. Sad
+76. Sleepy
+77. Yes. They look happy!
+78. Look at their faces.
+79. Who is still hiding?
+80. Let's turn the page and find out!
+81. Can you point to Dad?
+82. You found it! Well done!
+83. Let's look again.
+84. Where is Dad?
+85. In the wheelbarrow
+86. In the window
+87. That's right! Well done!
+88. Let's look at the picture again.
+89. Can everyone see Dad?
+90. Yes
+91. No
+92. Was Dad a good hider?
+93. That was a lovely story!
+94. Who did we find at the end?
+95. Where would you hide?
+96. What a great idea!
+97. Well done!
+98. Let's try together.
+99. You found it!
+100. You did it! A story star for you.

@@ -1,0 +1,22 @@
+# Local runtime and dependencies
+node_modules/
+tools/
+dist/
+.runtime/
+__pycache__/
+.pytest_cache/
+*.log
+*.pyc
+
+# Private configuration and generated account usage
+.env
+.env.*
+!.env.example
+*.secret
+*.pem
+tts-usage.json
+
+# Generated checks and archives
+tests/*-results.json
+tests/test-tone.wav
+*.zip

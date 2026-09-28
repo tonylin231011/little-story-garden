@@ -1,0 +1,23 @@
+[
+  {
+    "id": 502001,
+    "name": "智小柔 · 超自然女声",
+    "tier": "超自然大模型",
+    "src": "/audio/tencent/a06c6bb38c001998628e0054.mp3",
+    "text": "Can you see me? Can you find the box? You found me!"
+  },
+  {
+    "id": 501009,
+    "name": "WeWinny · 英语女声",
+    "tier": "大模型",
+    "src": "/audio/tencent/ca2ac2a859a103d7d29ab6cd.mp3",
+    "text": "Can you see me? Can you find the box? You found me!"
+  },
+  {
+    "id": 403000,
+    "name": "云小朵 · 超自然童声",
+    "tier": "超自然大模型",
+    "src": "/audio/tencent/470ba4740c3f73754ff44b9c.mp3",
+    "text": "Can you see me? Can you find the box? You found me!"
+  }
+]

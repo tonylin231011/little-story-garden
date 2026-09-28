@@ -1,0 +1,1123 @@
+{
+  "schema_version": "1.1.0",
+  "lesson_id": "ort_hide_and_seek_l1plus_v1",
+  "book": {
+    "title": "Hide and Seek",
+    "series": "Oxford Reading Tree",
+    "stage": "1+",
+    "reading_band": "First Sentences",
+    "author": "Roderick Hunt",
+    "illustrator": "Alex Brychta",
+    "language": "en",
+    "content_source": "user_uploaded",
+    "copyright_mode": "private_family_use"
+  },
+  "learner_profile": {
+    "age": 5.5,
+    "native_language": "zh-CN",
+    "english_level": "beginner_zero",
+    "reading_goal": [
+      "story_comprehension",
+      "listening",
+      "basic_vocabulary",
+      "oral_imitation",
+      "picture_to_language_mapping"
+    ],
+    "answer_modes": [
+      "tap_image",
+      "multiple_choice",
+      "single_word",
+      "parent_discussion"
+    ]
+  },
+  "lesson_settings": {
+    "child_mode": true,
+    "show_one_question_at_a_time": true,
+    "auto_play_page_audio": false,
+    "show_chinese_to_child": false,
+    "show_parent_hints": true,
+    "max_attempts_per_question": 2,
+    "wrong_answer_style": "gentle_retry",
+    "completion_reward": "story_star",
+    "tts": {
+      "enabled": false
+    },
+    "audio": {
+      "provider": "tencent_bundled",
+      "fallback": "parent_read",
+      "original_priority": true
+    }
+  },
+  "lesson_flow": [
+    "cover",
+    "page_read",
+    "page_interaction",
+    "next_page",
+    "story_review",
+    "talk_about_it",
+    "complete"
+  ],
+  "assets": {
+    "images": {
+      "cover": {
+        "asset_id": "img_cover",
+        "source": "/images/cover.png"
+      },
+      "page_01": {
+        "asset_id": "img_page_01",
+        "source": "/images/page_01.png"
+      },
+      "page_02": {
+        "asset_id": "img_page_02",
+        "source": "/images/page_02.png"
+      },
+      "page_03": {
+        "asset_id": "img_page_03",
+        "source": "/images/page_03.png"
+      },
+      "page_04": {
+        "asset_id": "img_page_04",
+        "source": "/images/page_04.png"
+      },
+      "page_05": {
+        "asset_id": "img_page_05",
+        "source": "/images/page_05.png"
+      }
+    },
+    "audio": {
+      "mode": "tencent_bundled",
+      "original_audio_available": false,
+      "manifest": "/audio/manifest.json",
+      "voices_config": "/audio/voices.json",
+      "disclosure": "Tencent Cloud AI-generated voices, not original publisher recordings. Files are bundled locally; playback makes no cloud calls."
+    }
+  },
+  "pages": [
+    {
+      "page_id": "cover",
+      "type": "cover",
+      "image_asset": "img_cover",
+      "read_aloud": {
+        "text": "Hide and Seek.",
+        "audio_type": "tts",
+        "segments": [
+          {
+            "id": "cover_s1",
+            "text": "Hide and Seek.",
+            "voice": "narrator",
+            "audio_type": "bundled_neural"
+          }
+        ]
+      },
+      "learning_targets": {
+        "story": [
+          "understand that the story is about a hiding game"
+        ],
+        "vocabulary": [
+          "hide",
+          "seek"
+        ]
+      },
+      "activities": [
+        {
+          "activity_id": "cover_warmup_01",
+          "category": "story",
+          "type": "multiple_choice",
+          "difficulty": 1,
+          "prompt": "What game do you think they will play?",
+          "tts": "What game do you think they will play?",
+          "choices": [
+            {
+              "id": "a",
+              "text": "Hide and seek"
+            },
+            {
+              "id": "b",
+              "text": "Football"
+            },
+            {
+              "id": "c",
+              "text": "Drawing"
+            }
+          ],
+          "correct_answer": "a",
+          "feedback": {
+            "correct": "Yes! Hide and seek!",
+            "retry": "Let's look at the title again."
+          },
+          "parent_note": "这道题只用于热身，不要求孩子已经认识 hide and seek。",
+          "enabled": true,
+          "reviewed": true
+        }
+      ],
+      "hotspots": []
+    },
+    {
+      "page_id": "page_01",
+      "type": "story_page",
+      "image_asset": "img_page_01",
+      "source_text": [
+        "Can you see us?"
+      ],
+      "read_aloud": {
+        "mode": "sentence",
+        "segments": [
+          {
+            "id": "p1_s1",
+            "text": "Can you see us?",
+            "audio_type": "bundled_neural",
+            "voice": "child"
+          }
+        ]
+      },
+      "learning_targets": {
+        "sentence_pattern": [
+          "Can you see us?"
+        ],
+        "vocabulary": [
+          "tree",
+          "box",
+          "wheelbarrow",
+          "window",
+          "under"
+        ],
+        "concepts": [
+          "hiding",
+          "location"
+        ]
+      },
+      "hotspots": [
+        {
+          "id": "p1_tree",
+          "label": "tree",
+          "bbox": [
+            0.24,
+            0.05,
+            0.43,
+            0.69
+          ]
+        },
+        {
+          "id": "p1_box",
+          "label": "box",
+          "bbox": [
+            0.02,
+            0.62,
+            0.34,
+            0.28
+          ]
+        },
+        {
+          "id": "p1_wheelbarrow",
+          "label": "wheelbarrow",
+          "bbox": [
+            0.4,
+            0.57,
+            0.36,
+            0.22
+          ]
+        },
+        {
+          "id": "p1_child_under_wheelbarrow",
+          "label": "child under the wheelbarrow",
+          "bbox": [
+            0.4,
+            0.68,
+            0.25,
+            0.1
+          ]
+        },
+        {
+          "id": "p1_window",
+          "label": "window",
+          "bbox": [
+            0.8,
+            0.39,
+            0.18,
+            0.26
+          ]
+        },
+        {
+          "id": "p1_girl_window",
+          "label": "girl in the window",
+          "bbox": [
+            0.83,
+            0.43,
+            0.13,
+            0.21
+          ]
+        },
+        {
+          "id": "p1_face_fence",
+          "label": "child behind the fence",
+          "bbox": [
+            0.58,
+            0.3,
+            0.1,
+            0.065
+          ]
+        },
+        {
+          "id": "p1_legs_tree",
+          "label": "person in the tree",
+          "bbox": [
+            0.36,
+            0.08,
+            0.25,
+            0.13
+          ]
+        }
+      ],
+      "activities": [
+        {
+          "activity_id": "p1_word_01",
+          "category": "word",
+          "type": "point_and_find",
+          "difficulty": 1,
+          "prompt": "Can you point to the tree?",
+          "tts": "Can you point to the tree?",
+          "target_hotspots": [
+            "p1_tree"
+          ],
+          "feedback": {
+            "correct": "Great! That's the tree.",
+            "retry": "Try again. Find the big tree."
+          },
+          "teach_word": {
+            "word": "tree",
+            "tts": "tree"
+          },
+          "enabled": true,
+          "reviewed": true,
+          "parent_note": "先听题再看图。允许指认或中文回答，不要求完整英语句子。"
+        },
+        {
+          "activity_id": "p1_word_02",
+          "category": "word",
+          "type": "point_and_find",
+          "difficulty": 1,
+          "prompt": "Can you find the box?",
+          "tts": "Can you find the box?",
+          "target_hotspots": [
+            "p1_box"
+          ],
+          "feedback": {
+            "correct": "Yes! That's the box.",
+            "retry": "Look near the bottom of the picture."
+          },
+          "teach_word": {
+            "word": "box",
+            "tts": "box"
+          },
+          "enabled": true,
+          "reviewed": true,
+          "parent_note": "先听题再看图。允许指认或中文回答，不要求完整英语句子。"
+        },
+        {
+          "activity_id": "p1_word_03",
+          "category": "word",
+          "type": "point_and_find",
+          "difficulty": 2,
+          "prompt": "Can you find someone under the wheelbarrow?",
+          "tts": "Can you find someone under the wheelbarrow?",
+          "target_hotspots": [
+            "p1_child_under_wheelbarrow"
+          ],
+          "feedback": {
+            "correct": "You found the hiding child!",
+            "retry": "Look under the wheelbarrow."
+          },
+          "teach_word": {
+            "word": "under",
+            "tts": "under"
+          },
+          "enabled": true,
+          "reviewed": true,
+          "parent_note": "先听题再看图。允许指认或中文回答，不要求完整英语句子。"
+        },
+        {
+          "activity_id": "p1_story_01",
+          "category": "story",
+          "type": "multiple_choice",
+          "difficulty": 1,
+          "prompt": "What are the children doing?",
+          "tts": "What are the children doing?",
+          "choices": [
+            {
+              "id": "a",
+              "text": "Hiding"
+            },
+            {
+              "id": "b",
+              "text": "Eating"
+            },
+            {
+              "id": "c",
+              "text": "Sleeping"
+            }
+          ],
+          "correct_answer": "a",
+          "feedback": {
+            "correct": "Yes. They are hiding!",
+            "retry": "Look carefully. Some children are hard to see."
+          },
+          "parent_note": "如果孩子不知道 hiding，可以直接先说中文“他们在躲起来”。",
+          "enabled": true,
+          "reviewed": true
+        }
+      ]
+    },
+    {
+      "page_id": "page_02",
+      "type": "story_page",
+      "image_asset": "img_page_02",
+      "source_text": [
+        "Can you see me?",
+        "Yes, I can see you."
+      ],
+      "read_aloud": {
+        "mode": "dialogue",
+        "segments": [
+          {
+            "id": "p2_s1",
+            "speaker": "hidden_child",
+            "text": "Can you see me?",
+            "audio_type": "bundled_neural",
+            "voice": "child"
+          },
+          {
+            "id": "p2_s2",
+            "speaker": "seeker",
+            "text": "Yes, I can see you.",
+            "audio_type": "bundled_neural",
+            "voice": "narrator"
+          }
+        ]
+      },
+      "learning_targets": {
+        "sentence_pattern": [
+          "Can you see me?",
+          "Yes, I can see you."
+        ],
+        "vocabulary": [
+          "see",
+          "me",
+          "you",
+          "wheelbarrow",
+          "window"
+        ]
+      },
+      "hotspots": [
+        {
+          "id": "p2_boy_orange",
+          "label": "boy in orange",
+          "bbox": [
+            0.48,
+            0.29,
+            0.18,
+            0.45
+          ]
+        },
+        {
+          "id": "p2_child_wheelbarrow",
+          "label": "child under the wheelbarrow",
+          "bbox": [
+            0.6,
+            0.47,
+            0.21,
+            0.18
+          ]
+        },
+        {
+          "id": "p2_wheelbarrow",
+          "label": "wheelbarrow",
+          "bbox": [
+            0.6,
+            0.34,
+            0.23,
+            0.25
+          ]
+        },
+        {
+          "id": "p2_window",
+          "label": "window",
+          "bbox": [
+            0.85,
+            0.28,
+            0.15,
+            0.29
+          ]
+        },
+        {
+          "id": "p2_girl_window",
+          "label": "girl in the window",
+          "bbox": [
+            0.87,
+            0.36,
+            0.1,
+            0.22
+          ]
+        },
+        {
+          "id": "p2_box",
+          "label": "box",
+          "bbox": [
+            0.02,
+            0.47,
+            0.25,
+            0.23
+          ]
+        }
+      ],
+      "activities": [
+        {
+          "activity_id": "p2_listen_repeat_01",
+          "category": "speaking",
+          "type": "listen_and_repeat",
+          "difficulty": 1,
+          "prompt": "Can you see me?",
+          "tts": "Can you see me?",
+          "feedback": {
+            "complete": "Nice! Can you see me?"
+          },
+          "scoring": {
+            "enabled": false
+          },
+          "enabled": true,
+          "reviewed": true,
+          "parent_note": "先听题再看图。允许指认或中文回答，不要求完整英语句子。"
+        },
+        {
+          "activity_id": "p2_word_01",
+          "category": "word",
+          "type": "point_and_find",
+          "difficulty": 1,
+          "prompt": "Can you point to the wheelbarrow?",
+          "tts": "Can you point to the wheelbarrow?",
+          "target_hotspots": [
+            "p2_wheelbarrow"
+          ],
+          "feedback": {
+            "correct": "Yes! That's the wheelbarrow.",
+            "retry": "Look at the orange wheelbarrow."
+          },
+          "enabled": true,
+          "reviewed": true,
+          "parent_note": "先听题再看图。允许指认或中文回答，不要求完整英语句子。"
+        },
+        {
+          "activity_id": "p2_word_02",
+          "category": "word",
+          "type": "point_and_find",
+          "difficulty": 1,
+          "prompt": "Can you find the girl in the window?",
+          "tts": "Can you find the girl in the window?",
+          "target_hotspots": [
+            "p2_girl_window"
+          ],
+          "feedback": {
+            "correct": "You found her!",
+            "retry": "Look at the window."
+          },
+          "enabled": true,
+          "reviewed": true,
+          "parent_note": "先听题再看图。允许指认或中文回答，不要求完整英语句子。"
+        },
+        {
+          "activity_id": "p2_story_01",
+          "category": "story",
+          "type": "multiple_choice",
+          "difficulty": 1,
+          "prompt": "Who has been found?",
+          "tts": "Who has been found?",
+          "choices": [
+            {
+              "id": "a",
+              "text": "The child under the wheelbarrow"
+            },
+            {
+              "id": "b",
+              "text": "Dad"
+            },
+            {
+              "id": "c",
+              "text": "A cat"
+            }
+          ],
+          "correct_answer": "a",
+          "feedback": {
+            "correct": "That's right!",
+            "retry": "Look near the wheelbarrow."
+          },
+          "enabled": true,
+          "reviewed": true,
+          "parent_note": "先听题再看图。允许指认或中文回答，不要求完整英语句子。"
+        }
+      ]
+    },
+    {
+      "page_id": "page_03",
+      "type": "story_page",
+      "image_asset": "img_page_03",
+      "source_text": [
+        "Can you see me?",
+        "Yes, we can see you."
+      ],
+      "read_aloud": {
+        "mode": "dialogue",
+        "segments": [
+          {
+            "id": "p3_s1",
+            "text": "Can you see me?",
+            "audio_type": "bundled_neural",
+            "voice": "child"
+          },
+          {
+            "id": "p3_s2",
+            "text": "Yes, we can see you.",
+            "audio_type": "bundled_neural",
+            "voice": "narrator"
+          }
+        ]
+      },
+      "learning_targets": {
+        "sentence_pattern": [
+          "Can you see me?",
+          "Yes, we can see you."
+        ],
+        "vocabulary": [
+          "box",
+          "tree",
+          "we",
+          "see"
+        ],
+        "language_contrast": {
+          "I": "one speaker",
+          "we": "more than one speaker"
+        }
+      },
+      "hotspots": [
+        {
+          "id": "p3_box",
+          "label": "box",
+          "bbox": [
+            0.1,
+            0.49,
+            0.23,
+            0.22
+          ]
+        },
+        {
+          "id": "p3_person_tree",
+          "label": "person in the tree",
+          "bbox": [
+            0.43,
+            0.025,
+            0.25,
+            0.17
+          ]
+        },
+        {
+          "id": "p3_tree",
+          "label": "tree",
+          "bbox": [
+            0.2,
+            0.02,
+            0.43,
+            0.79
+          ]
+        },
+        {
+          "id": "p3_window",
+          "label": "window",
+          "bbox": [
+            0.88,
+            0.32,
+            0.12,
+            0.26
+          ]
+        },
+        {
+          "id": "p3_girl_window",
+          "label": "girl in the window",
+          "bbox": [
+            0.91,
+            0.36,
+            0.08,
+            0.2
+          ]
+        },
+        {
+          "id": "p3_children_outside",
+          "label": "children outside",
+          "bbox": [
+            0.6,
+            0.31,
+            0.3,
+            0.44
+          ]
+        }
+      ],
+      "activities": [
+        {
+          "activity_id": "p3_word_01",
+          "category": "word",
+          "type": "point_and_find",
+          "difficulty": 1,
+          "prompt": "Can you point to the box?",
+          "tts": "Can you point to the box?",
+          "target_hotspots": [
+            "p3_box"
+          ],
+          "feedback": {
+            "correct": "Yes! That's the box.",
+            "retry": "Look on the left."
+          },
+          "enabled": true,
+          "reviewed": true,
+          "parent_note": "先听题再看图。允许指认或中文回答，不要求完整英语句子。"
+        },
+        {
+          "activity_id": "p3_word_02",
+          "category": "word",
+          "type": "point_and_find",
+          "difficulty": 2,
+          "prompt": "Can you find someone in the tree?",
+          "tts": "Can you find someone in the tree?",
+          "target_hotspots": [
+            "p3_person_tree"
+          ],
+          "feedback": {
+            "correct": "Good spotting!",
+            "retry": "Look up in the tree."
+          },
+          "enabled": true,
+          "reviewed": true,
+          "parent_note": "先听题再看图。允许指认或中文回答，不要求完整英语句子。"
+        },
+        {
+          "activity_id": "p3_story_01",
+          "category": "story",
+          "type": "multiple_choice",
+          "difficulty": 1,
+          "prompt": "Who is in the window?",
+          "tts": "Who is in the window?",
+          "choices": [
+            {
+              "id": "a",
+              "text": "A girl",
+              "emoji": "👧"
+            },
+            {
+              "id": "b",
+              "text": "Dad",
+              "emoji": "👨"
+            },
+            {
+              "id": "c",
+              "text": "A cat",
+              "emoji": "🐱"
+            }
+          ],
+          "correct_answer": "a",
+          "feedback": {
+            "correct": "Yes! The girl is in the window.",
+            "retry": "Look at the window."
+          },
+          "parent_note": "按真实图片修正：本页找到窗边的女孩，箱子里的孩子仍躲着。",
+          "enabled": true,
+          "reviewed": true
+        },
+        {
+          "activity_id": "p3_language_01",
+          "category": "language",
+          "type": "parent_guided",
+          "difficulty": 2,
+          "prompt": "Listen: I can see you. We can see you.",
+          "tts": "I can see you. We can see you.",
+          "child_action": "listen_only",
+          "parent_note": "这里只让孩子感受 I 和 we 的不同，不需要解释语法术语。",
+          "enabled": true,
+          "reviewed": true
+        }
+      ]
+    },
+    {
+      "page_id": "page_04",
+      "type": "story_page",
+      "image_asset": "img_page_04",
+      "source_text": [
+        "Can you see me?",
+        "Yes, we can see you."
+      ],
+      "read_aloud": {
+        "mode": "dialogue",
+        "segments": [
+          {
+            "id": "p4_s1",
+            "text": "Can you see me?",
+            "audio_type": "bundled_neural",
+            "voice": "child"
+          },
+          {
+            "id": "p4_s2",
+            "text": "Yes, we can see you.",
+            "audio_type": "bundled_neural",
+            "voice": "narrator"
+          }
+        ]
+      },
+      "learning_targets": {
+        "vocabulary": [
+          "box",
+          "happy",
+          "see"
+        ],
+        "story": [
+          "more children have now been found"
+        ]
+      },
+      "hotspots": [
+        {
+          "id": "p4_child_box",
+          "label": "child in the box",
+          "bbox": [
+            0.16,
+            0.38,
+            0.24,
+            0.27
+          ]
+        },
+        {
+          "id": "p4_children_group",
+          "label": "children standing together",
+          "bbox": [
+            0.49,
+            0.27,
+            0.32,
+            0.49
+          ]
+        },
+        {
+          "id": "p4_tree",
+          "label": "tree",
+          "bbox": [
+            0.33,
+            0.02,
+            0.27,
+            0.73
+          ]
+        },
+        {
+          "id": "p4_person_tree",
+          "label": "person still in the tree",
+          "bbox": [
+            0.54,
+            0.02,
+            0.25,
+            0.2
+          ]
+        },
+        {
+          "id": "p4_wheelbarrow",
+          "label": "wheelbarrow",
+          "bbox": [
+            0.63,
+            0.42,
+            0.25,
+            0.21
+          ]
+        }
+      ],
+      "activities": [
+        {
+          "activity_id": "p4_word_01",
+          "category": "word",
+          "type": "point_and_find",
+          "difficulty": 1,
+          "prompt": "Can you point to the child in the box?",
+          "tts": "Can you point to the child in the box?",
+          "target_hotspots": [
+            "p4_child_box"
+          ],
+          "feedback": {
+            "correct": "Yes! You found the child.",
+            "retry": "Look inside the big box."
+          },
+          "enabled": true,
+          "reviewed": true,
+          "parent_note": "先听题再看图。允许指认或中文回答，不要求完整英语句子。"
+        },
+        {
+          "activity_id": "p4_word_02",
+          "category": "word",
+          "type": "multiple_choice",
+          "difficulty": 1,
+          "prompt": "What is the child in?",
+          "tts": "What is the child in?",
+          "choices": [
+            {
+              "id": "a",
+              "text": "A box"
+            },
+            {
+              "id": "b",
+              "text": "A bed"
+            },
+            {
+              "id": "c",
+              "text": "A boat"
+            }
+          ],
+          "correct_answer": "a",
+          "feedback": {
+            "correct": "Yes! A box.",
+            "retry": "Look at the picture again."
+          },
+          "enabled": true,
+          "reviewed": true,
+          "parent_note": "先听题再看图。允许指认或中文回答，不要求完整英语句子。"
+        },
+        {
+          "activity_id": "p4_story_01",
+          "category": "story",
+          "type": "multiple_choice",
+          "difficulty": 1,
+          "prompt": "How do the children look?",
+          "tts": "How do the children look?",
+          "choices": [
+            {
+              "id": "a",
+              "text": "Happy"
+            },
+            {
+              "id": "b",
+              "text": "Sad"
+            },
+            {
+              "id": "c",
+              "text": "Sleepy"
+            }
+          ],
+          "correct_answer": "a",
+          "feedback": {
+            "correct": "Yes. They look happy!",
+            "retry": "Look at their faces."
+          },
+          "enabled": true,
+          "reviewed": true,
+          "parent_note": "先听题再看图。允许指认或中文回答，不要求完整英语句子。"
+        },
+        {
+          "activity_id": "p4_story_02",
+          "category": "story",
+          "type": "prediction",
+          "difficulty": 2,
+          "prompt": "Who is still hiding?",
+          "tts": "Who is still hiding?",
+          "answer_mode": "parent_discussion",
+          "accepted_concepts": [
+            "Dad",
+            "someone in the tree"
+          ],
+          "feedback": {
+            "complete": "Let's turn the page and find out!"
+          },
+          "parent_note": "允许孩子用中文回答。重点是预测下一页。",
+          "enabled": true,
+          "reviewed": true
+        }
+      ]
+    },
+    {
+      "page_id": "page_05",
+      "type": "story_page",
+      "image_asset": "img_page_05",
+      "source_text": [
+        "We can all see Dad."
+      ],
+      "read_aloud": {
+        "segments": [
+          {
+            "id": "p5_s1",
+            "text": "We can all see Dad.",
+            "voice": "narrator",
+            "audio_type": "bundled_neural"
+          }
+        ]
+      },
+      "learning_targets": {
+        "vocabulary": [
+          "Dad",
+          "all",
+          "see",
+          "wheelbarrow"
+        ]
+      },
+      "hotspots": [
+        {
+          "id": "p5_dad",
+          "label": "Dad",
+          "bbox": [
+            0.28,
+            0.26,
+            0.52,
+            0.43
+          ]
+        },
+        {
+          "id": "p5_wheelbarrow",
+          "label": "wheelbarrow",
+          "bbox": [
+            0.35,
+            0.48,
+            0.52,
+            0.34
+          ]
+        },
+        {
+          "id": "p5_tree",
+          "label": "tree",
+          "bbox": [
+            0.01,
+            0.08,
+            0.29,
+            0.69
+          ]
+        }
+      ],
+      "activities": [
+        {
+          "activity_id": "p5_word_01",
+          "category": "word",
+          "type": "point_and_find",
+          "prompt": "Can you point to Dad?",
+          "tts": "Can you point to Dad?",
+          "target_hotspots": [
+            "p5_dad"
+          ],
+          "feedback": {
+            "correct": "You found it! Well done!",
+            "retry": "Let's look again."
+          },
+          "enabled": true,
+          "reviewed": true,
+          "parent_note": "先听题再看图。允许指认或中文回答，不要求完整英语句子。"
+        },
+        {
+          "activity_id": "p5_word_02",
+          "category": "word",
+          "type": "multiple_choice",
+          "prompt": "Where is Dad?",
+          "tts": "Where is Dad?",
+          "choices": [
+            {
+              "id": "0",
+              "text": "In the wheelbarrow",
+              "emoji": "🛒"
+            },
+            {
+              "id": "1",
+              "text": "In the window",
+              "emoji": "🪟"
+            }
+          ],
+          "correct_answer": "0",
+          "feedback": {
+            "correct": "That's right! Well done!",
+            "retry": "Let's look at the picture again."
+          },
+          "enabled": true,
+          "reviewed": true,
+          "parent_note": "先听题再看图。允许指认或中文回答，不要求完整英语句子。"
+        },
+        {
+          "activity_id": "p5_story_01",
+          "category": "story",
+          "type": "multiple_choice",
+          "prompt": "Can everyone see Dad?",
+          "tts": "Can everyone see Dad?",
+          "choices": [
+            {
+              "id": "0",
+              "text": "Yes",
+              "emoji": "🙌"
+            },
+            {
+              "id": "1",
+              "text": "No",
+              "emoji": "🙈"
+            }
+          ],
+          "correct_answer": "0",
+          "feedback": {
+            "correct": "That's right! Well done!",
+            "retry": "Let's look at the picture again."
+          },
+          "enabled": true,
+          "reviewed": true,
+          "parent_note": "先听题再看图。允许指认或中文回答，不要求完整英语句子。"
+        },
+        {
+          "activity_id": "p5_talk",
+          "category": "story",
+          "type": "parent_discussion",
+          "prompt": "Was Dad a good hider?",
+          "tts": "Was Dad a good hider?",
+          "parent_note": "没有标准答案。可以用中文聊聊爸爸为什么被大家发现，不纠正语法。",
+          "feedback": {
+            "complete": "That was a lovely story!"
+          },
+          "enabled": true,
+          "reviewed": true
+        }
+      ]
+    }
+  ],
+  "review": [
+    {
+      "activity_id": "review_1",
+      "category": "story",
+      "type": "multiple_choice",
+      "prompt": "Who did we find at the end?",
+      "tts": "Who did we find at the end?",
+      "choices": [
+        {
+          "id": "0",
+          "text": "Dad",
+          "emoji": "👨"
+        },
+        {
+          "id": "1",
+          "text": "A cat",
+          "emoji": "🐱"
+        }
+      ],
+      "correct_answer": "0",
+      "feedback": {
+        "correct": "That's right! Well done!",
+        "retry": "Let's look at the picture again."
+      },
+      "enabled": true,
+      "reviewed": true
+    },
+    {
+      "activity_id": "talk_1",
+      "category": "talk",
+      "type": "parent_discussion",
+      "prompt": "Where would you hide?",
+      "tts": "Where would you hide?",
+      "parent_note": "可以用中文回答。一起在家找一个安全的藏身处，再说一个英语词，例如 box 或 tree。",
+      "feedback": {
+        "complete": "What a great idea!"
+      },
+      "enabled": true,
+      "reviewed": true
+    }
+  ],
+  "content_notes": [
+    "Preserved retrieved Lesson JSON fields. Page 3 question corrected against actual uploaded window scene.",
+    "Original chat JSON was truncated after page 5 learning_targets; page 5 and review reconstructed from retrieved product specification.",
+    "Hotspots calibrated against actual full image bounds; parent editor supports visual refinement."
+  ]
+}

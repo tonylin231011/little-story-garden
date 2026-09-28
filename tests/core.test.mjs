@@ -1,0 +1,12 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {validateLesson,eligible,hitTarget,normalizeProgress,escapeHtml} from '../src/core.js';
+const lesson=JSON.parse(await readFile(new URL('../public/lesson.json',import.meta.url),'utf8'));
+test('Six actual pages and valid reviewed activities',()=>{assert.deepEqual(validateLesson(lesson),[]);assert.equal(lesson.pages.length,6);});
+test('Correct regions succeed; outside image misses; overlaps do not mask target',()=>{for(const p of lesson.pages)for(const a of p.activities.filter(a=>a.type==='point_and_find')){const h=p.hotspots.find(h=>h.id===a.target_hotspots[0]);assert.equal(hitTarget(p,a,{x:h.bbox[0]+h.bbox[2]/2,y:h.bbox[1]+h.bbox[3]/2}),true);assert.equal(hitTarget(p,a,{x:-1,y:-1}),false);}});
+test('Unreviewed and disabled questions never reach child mode',()=>{assert.equal(eligible([{category:'word',reviewed:false},{category:'word',enabled:false},{category:'story'},{category:'word'}],'word').length,1);});
+test('Invalid choice answers and out-of-image regions rejected',()=>{const l=structuredClone(lesson);l.pages[0].activities[0].correct_answer='missing';l.pages[1].hotspots[0].bbox=[.9,.2,.5,.2];assert.ok(validateLesson(l).length>=2);});
+test('Stale/corrupt progress normalized without false activity completion',()=>{const p=normalizeProgress({page:99,mode:'bad',done:['fake'],read:['fake'],index:-5},lesson);assert.equal(p.page,5);assert.equal(p.mode,'read');assert.deepEqual(p.done,[]);assert.deepEqual(p.read,[]);assert.equal(p.index,0);});
+test('Content is escaped before rendering',()=>{assert.equal(escapeHtml('<img onerror="x">'), '&lt;img onerror=&quot;x&quot;&gt;');});
+test('All six image assets exist and have PNG signatures',async()=>{for(const im of Object.values(lesson.assets.images)){const b=await readFile(new URL('../public'+im.source,import.meta.url));assert.equal(b.subarray(1,4).toString(),'PNG');}});

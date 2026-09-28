@@ -1,0 +1,58 @@
+import io,json,math,struct,wave
+from pathlib import Path
+from playwright.sync_api import sync_playwright,expect
+ROOT=Path(__file__).resolve().parents[1]
+results=[]
+def action(page,name):page.locator('[data-action="'+name+'"]').first.click()
+def lib(page,name):page.locator('[data-lib="'+name+'"]').first.click()
+def draft(page,title,count=1):
+ action(page,'library');lib(page,'new');page.locator('#episode-title').fill(title)
+ image=(ROOT/'public/images/cover.png').read_bytes()
+ page.locator('#episode-files').set_input_files([{'name':f'page_{i:02}.png','mimeType':'image/png','buffer':image} for i in range(count)])
+ page.wait_for_selector('[data-lib="create"]',timeout=60000)
+ for i in range(count):page.locator(f'[data-page-text="{i}"]').fill('A brand new zebra adventure.')
+ lib(page,'create');page.wait_for_selector('#page-body')
+def passed(label):results.append(label);print('PASS '+label,flush=True)
+buf=io.BytesIO()
+with wave.open(buf,'wb') as wav:
+ wav.setnchannels(1);wav.setsampwidth(2);wav.setframerate(24000)
+ wav.writeframes(b''.join(struct.pack('<h',int(3500*math.sin(2*math.pi*440*i/24000))) for i in range(48000)))
+with sync_playwright() as pw:
+ browser=pw.chromium.launch(headless=True,args=['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream'])
+ context=browser.new_context(viewport={'width':1360,'height':1000},bypass_csp=True,permissions=['microphone'])
+ context.add_init_script((ROOT/'tests/audio_probe.js').read_text(encoding='utf-8'))
+ page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+ page.goto('http://127.0.0.1:4173');page.wait_for_selector('[data-action="listen"]')
+ draft(page,'Audio book A')
+ page.locator('#import-audio').set_input_files({'name':'test-tone.wav','mimeType':'audio/wav','buffer':buf.getvalue()})
+ expect(page.locator('#original-status')).to_contain_text('已导入')
+ action(page,'save-editor');action(page,'parent');action(page,'listen')
+ page.wait_for_function('window.sourcePlaying === true')
+ expect(page.locator('#audio-status')).to_contain_text('导入')
+ action(page,'stop');action(page,'repeat-start');action(page,'record-start')
+ page.wait_for_selector('[data-action="record-stop"]');page.wait_for_timeout(500);action(page,'record-stop')
+ page.wait_for_selector('[data-action="record-play"]')
+ draft(page,'Audio book B')
+ expect(page.locator('#original-status')).to_contain_text('尚未导入')
+ action(page,'save-editor');action(page,'parent');action(page,'listen')
+ expect(page.locator('#audio-status')).to_contain_text('还没有录音')
+ action(page,'repeat-start');expect(page.locator('[data-action="record-play"]')).to_have_count(0)
+ passed('Imported page audio and temporary child recordings do not leak into another book with the same page IDs')
+ action(page,'library');page.locator('.episode-card').filter(has_text='Audio book A').locator('[data-lib="open"]').click()
+ action(page,'listen');page.wait_for_function('window.sourcePlaying === true');action(page,'stop')
+ passed('Returning to the first book restores its imported page audio')
+ draft(page,'Long story',40)
+ action(page,'save-editor');action(page,'parent');page.set_viewport_size({'width':390,'height':844})
+ page.screenshot(path=str(ROOT/'screenshot-long-book-mobile.png'),full_page=True)
+ if not page.evaluate('document.documentElement.scrollWidth <= innerWidth'):
+  print(page.evaluate('JSON.stringify(Array.from(document.querySelectorAll("body *")).map(e=>({tag:e.tagName,cls:e.className,w:e.getBoundingClientRect().width,left:e.getBoundingClientRect().left,right:e.getBoundingClientRect().right})).filter(e=>e.right>innerWidth+1&&e.w>0).slice(0,15))'),flush=True)
+ assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+ expect(page.locator('.dot')).to_have_count(40)
+ page.locator('[data-action="page"][data-page="39"]').click()
+ expect(page.locator('.page-heading')).to_contain_text('Page 40 of 40')
+ action(page,'read-together');action(page,'next-page');page.wait_for_selector('.completion')
+ expect(page.locator('.summary')).to_contain_text('1 / 40')
+ passed('Forty-page book remains usable on mobile and completes at its own final page')
+ assert not errors,errors
+ context.close();browser.close()
+(ROOT/'tests/library-edges-results.json').write_text(json.dumps(results,ensure_ascii=False,indent=2),encoding='utf-8')
