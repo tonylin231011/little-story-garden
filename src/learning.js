@@ -19,7 +19,7 @@ export function resultLabel(result){
  return {independent:'独立完成',retried:'再试后完成',together:'一起完成',participated:'已参与', 'needs-practice':'再练一次'}[result]||'已参与';
 }
 export class LocalRecorder{
- constructor(onUpdate){this.onUpdate=onUpdate;this.clips=new Map();this.token=0;this.state='idle';this.key='';this.error='';}
+ constructor(onUpdate,onClip){this.onUpdate=onUpdate;this.onClip=onClip;this.clips=new Map();this.token=0;this.state='idle';this.key='';this.error='';}
  notify(){this.onUpdate();}
  cancel(){
   this.token++;clearTimeout(this.timer);this.timer=null;
@@ -39,7 +39,7 @@ export class LocalRecorder{
     clearTimeout(this.timer);this.stream=null;this.state='idle';
     const blob=new Blob(chunks,{type:recorder.mimeType||'audio/webm'});
     if(blob.size)this.clips.set(key,blob);else this.error='没有录到声音，可以再试一次。';
-    this.notify();
+    this.notify();if(blob.size)this.onClip?.(key,blob);
    };
    recorder.onerror=()=>{this.cancel();this.error='录音中断了，可以直接跟读或重新试一次。';this.notify();};
    recorder.start();this.state='recording';this.notify();this.timer=setTimeout(()=>this.stop(),15000);

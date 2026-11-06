@@ -11,3 +11,5 @@
 
 /* Keep accessible page labels within the horizontally scrolling page strip. */
 .page-dots .dot{position:relative}.page-nav>button{flex-shrink:0}
+.repeat-cue{padding:13px 16px;border-radius:14px;background:#fff1c9;color:#6d5424;font-size:15px;font-weight:700;line-height:1.5}
+.pronunciation-result{display:flex;flex-direction:column;gap:3px;margin:10px 0 14px;padding:13px;border-radius:14px;background:#e7f1d9;color:#365b39;line-height:1.5}.pronunciation-result strong{font-size:20px}.pronunciation-result span{font-size:12px}.pronunciation-result.excellent{background:#fff0c2;color:#80571a}.pronunciation-result.retry{background:#f1ebdd;color:#745e34}

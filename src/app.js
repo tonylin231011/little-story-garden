@@ -5,10 +5,13 @@ import {BUILTIN_ID,storageFor,getEpisode,saveEpisode,resolveImages,revokeImages,
 import {LibraryView} from './library-ui.js';
 import {generateEpisode,aiStatus} from './generation.js';
 import {siteAsset} from './paths.js';
+import {evaluatePronunciation,pronunciationFeedback} from './pronunciation.js';
 let activeId=BUILTIN_ID,STORAGE=LEGACY_STORAGE,libraryOpen=false,activeRecord=null,imageSources=new Map(),aiBusy=false;
 const root=document.querySelector('#app');
 async function optionalJson(url,fallback){try{const r=await fetch(siteAsset(url));return r.ok?await r.json():fallback;}catch{return fallback;}}
 const [base,manifest,voiceConfig,voicePreviews]=await Promise.all([fetch(siteAsset('/lesson.json')).then(r=>r.json()),fetch(siteAsset('/audio/manifest.json')).then(r=>r.json()),optionalJson('/audio/voices.json',{default:'',voices:[]}),optionalJson('/audio/previews.json',[])]);
+const pronunciationConfig=await optionalJson('/pronunciation.json',{endpoint:''});
+let assessmentToken='';try{assessmentToken=localStorage.getItem('story-garden-assessment-token')||'';}catch{}
 let selectedVoice=voiceConfig.default,voiceLoadToken=0;
 try{const storedVoice=localStorage.getItem(STORAGE+'-voice');if(voiceConfig.voices.some(v=>v.id===storedVoice))selectedVoice=storedVoice;}catch{}
 const initialVoice=voiceConfig.voices.find(v=>v.id===selectedVoice);
@@ -20,9 +23,17 @@ let progress=normalizeProgress(stored(STORAGE+'-progress'),lesson),feedback='',a
 const audio=new AudioAdapter(initialManifest,text=>{const el=document.querySelector('#audio-status');if(el)el.textContent=text;});
 audio.voiceName=initialVoice?.name||'';
 let history=stored(STORAGE+'-learning')||[];if(!Array.isArray(history))history=[];
-let repeatMode=false,repeatIndex=0;
+let repeatMode=false,repeatIndex=0,repeatCue=false;
+const pronunciation=new Map(),recordTargets=new Map();
 progress.practiceIds=Array.isArray(progress.practiceIds)?progress.practiceIds.filter(id=>activityIndex().some(x=>x.q.activity_id===id)):[];
-const recorder=new LocalRecorder(()=>{if(!parent)render();});
+const recorder=new LocalRecorder(()=>{if(!parent)render();},async(key,blob)=>{
+ const text=recordTargets.get(key);if(!text)return;
+ const ticket=Symbol();pronunciation.set(key,{state:'checking',ticket});render();
+ try{
+  const result=await evaluatePronunciation(pronunciationConfig.endpoint,blob,text,assessmentToken);
+  if(pronunciation.get(key)?.ticket===ticket){pronunciation.set(key,{state:'ready',...pronunciationFeedback(result),score:result.score,completion:result.completion});render();}
+ }catch(error){if(pronunciation.get(key)?.ticket===ticket){pronunciation.set(key,{state:'unavailable',message:error.message});render();}}
+});
 const shelf=new LibraryView(()=>{if(libraryOpen)render();},openEpisode);
 root.addEventListener('pointerdown',()=>audio.unlock(),{capture:true});
 root.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' ')audio.unlock();},{capture:true});
@@ -45,7 +56,7 @@ function questions(){
  return eligible(progress.stage==='review'?lesson.review:page().activities,progress.filter);
 }
 function current(){const q=questions();progress.index=Math.min(progress.index,Math.max(0,q.length-1));const item=q[progress.index];if(progress.stage==='review'&&progress.practiceIds?.length&&item){const match=activityIndex().find(x=>x.q.activity_id===item.activity_id);if(match)progress.page=match.page;}return item;}
-function resetQuestion(){audio.stop();recorder.cancel();repeatMode=false;repeatIndex=0;feedback='';attempts=0;solved=false;hint=false;}
+function resetQuestion(){audio.stop();recorder.cancel();repeatMode=false;repeatIndex=0;repeatCue=false;feedback='';attempts=0;solved=false;hint=false;}
 function change(fn){resetQuestion();fn();if(progress.stage==='book')progress.practiceIds=[];persist();render();if(progress.mode==='play'&&progress.stage!=='complete'&&current())speak(current().tts||current().prompt);}
 function btn(label,action,attrs=''){return '<button type="button" data-action="'+action+'" '+attrs+'>'+label+'</button>';}
 function markRead(){const id=page().page_id;if(!progress.read.includes(id))progress.read.push(id);persist();render();}
@@ -53,8 +64,18 @@ function speak(text){if(recorder.state!=='idle'){recorder.cancel();render();}aud
 function finishAnswer(assisted=false){const q=current();if(!q)return;solved=true;const usedHelp=assisted||hint||attempts>=2;logResult(q,{assisted:usedHelp});hint=usedHelp;if(!progress.done.includes(q.activity_id))progress.done.push(q.activity_id);feedback=q.feedback?.correct||q.feedback?.complete||'Well done!';persist();render();speak(feedback);}
 function answer(ok){if(solved)return;if(ok)finishAnswer();else{attempts++;logResult(current(),{failed:true});feedback=current().feedback?.retry||"Let's look again.";hint=attempts>=2;render();speak(feedback);}}
 function endBook(){progress.mode='play';progress.filter='all';progress.index=0;if(eligible(lesson.review).length)progress.stage='review';else{progress.stage='complete';progress.finished=true;}}
-function nextPage(){change(()=>{if(progress.page<lastPage()){progress.page++;progress.mode='read';progress.index=0;progress.filter='all';}else endBook();});}
-function nextQuestion(){change(()=>{if(progress.index<questions().length-1)progress.index++;else if(progress.stage==='review'){progress.stage='complete';progress.finished=true;}else if(progress.filter!=='all'){progress.filter='all';progress.mode='read';progress.index=0;}else if(progress.page<lastPage()){progress.page++;progress.mode='read';progress.index=0;}else endBook();});}
+function listenToPage(){
+ const p=page(),id=p.page_id;
+ if(!p.read_aloud.segments.length){audio.statusText('这一页没有正文，和孩子一起看看图吧。');return;}
+ audio.play(p.read_aloud.segments,{pageId:id,onComplete:()=>{
+  if(parent||libraryOpen||progress.stage!=='book'||progress.mode!=='read'||page().page_id!==id)return;
+  if(!progress.read.includes(id))progress.read.push(id);
+  repeatMode=true;repeatIndex=0;repeatCue=true;persist();render();
+  if(window.innerWidth<=640)document.querySelector('.activity-panel')?.scrollIntoView({behavior:'smooth',block:'start'});
+ }});
+}
+function nextPage(){const oldId=page().page_id;change(()=>{if(progress.page<lastPage()){progress.page++;progress.mode='read';progress.index=0;progress.filter='all';}else endBook();});if(progress.stage==='book'&&page().page_id!==oldId)listenToPage();}
+function nextQuestion(){const oldId=page().page_id;change(()=>{if(progress.index<questions().length-1)progress.index++;else if(progress.stage==='review'){progress.stage='complete';progress.finished=true;}else if(progress.filter!=='all'){progress.filter='all';progress.mode='read';progress.index=0;}else if(progress.page<lastPage()){progress.page++;progress.mode='read';progress.index=0;}else endBook();});if(progress.stage==='book'&&page().page_id!==oldId)listenToPage();}
 function imageUrl(p){const source=Object.values((parent?draft:lesson).assets.images).find(a=>a.asset_id===p.image_asset).source;return imageSources.get(source)||siteAsset(source);}
 function boxStyle(b){return 'left:'+b[0]*100+'%;top:'+b[1]*100+'%;width:'+b[2]*100+'%;height:'+b[3]*100+'%';}
 function picture(p,editing=false){
@@ -84,18 +105,20 @@ function coachNote(){
  return '<details class="parent-hint coach-note"><summary>给大人的带读提示</summary><p>'+tips[progress.page]+'</p><p>每次读 1–2 页也很好；孩子想停时就停，下次会保留进度。</p></details>';
 }
 function repeatKey(){return 'repeat:'+page().page_id+':'+repeatIndex;}
-function recorderBox(key){
- const active=recorder.key===key,recording=active&&recorder.state==='recording',asking=active&&recorder.state==='asking',clip=recorder.clips.get(key);
+function recorderBox(key,text){
+ const active=recorder.key===key,recording=active&&recorder.state==='recording',asking=active&&recorder.state==='asking',clip=recorder.clips.get(key),rating=pronunciation.get(key);
  return '<div class="recorder"><p class="small">'+(recording?'🔴 正在录音 · 最长 15 秒':asking?'请允许使用麦克风…':clip?'🌱 录好了，听听自己的声音':'愿意的话，录一句自己的声音')+'</p>'+
- (recording?btn('■ 说好了','record-stop','class="primary wide"'):btn(asking?'等待麦克风…':clip?'🎙 再录一次':'🎙 我来试试','record-start','data-key="'+e(key)+'" class="secondary wide" '+(asking?'disabled':'')))+
+ (clip?'<div class="pronunciation-result '+e(rating?.level||'')+'" role="status"><strong>'+e(rating?.state==='ready'?rating.title:'Good job!')+'</strong><span>'+e(rating?.state==='ready'?rating.message:rating?.state==='checking'?'正在听你的发音…':rating?.state==='unavailable'?rating.message:'勇敢开口就是进步！')+'</span></div>':'')+
+ (recording?btn('■ 说好了','record-stop','class="primary wide"'):btn(asking?'等待麦克风…':clip?'🎙 再录一次':'🎙 我来试试','record-start','data-key="'+e(key)+'" data-text="'+e(text)+'" class="secondary wide" '+(asking?'disabled':'')))+
  (clip?'<div class="audio-options">'+btn('▶ 听听我','record-play','data-key="'+e(key)+'" class="quiet" '+(recording||asking?'disabled':''))+btn('删除录音','record-clear','data-key="'+e(key)+'" class="quiet small"')+'</div>':'')+
  (active&&recorder.error?'<p class="record-error" role="status">'+e(recorder.error)+'</p>':'')+
- '<p class="small muted">只在本页临时保存，刷新即清除。不上传、不打分。</p></div>';
+ '<p class="small muted">录音只在本页临时保存。联网且评测服务可用时，会发送录音和这句英文给腾讯云口语评测；结果仅供练习参考。</p></div>';
 }
 function repeatCard(p){
  repeatIndex=Math.min(repeatIndex,p.read_aloud.segments.length-1);const segment=p.read_aloud.segments[repeatIndex];
  return '<div class="card-content"><p class="eyebrow">MY LITTLE VOICE · '+(repeatIndex+1)+' / '+p.read_aloud.segments.length+'</p><h2>Say it with me</h2><p class="muted small">听一句，跟着试一句。</p><div class="sentences"><p>'+e(segment.text)+'</p></div>'+
- btn('♫ 先听一遍','repeat-model','class="primary wide"')+recorderBox(repeatKey())+
+ (repeatCue?'<p class="repeat-cue" role="status">🌟 听完啦，轮到你！点下面的麦克风，跟着说一句。</p>':'')+
+ btn('♫ 先听一遍','repeat-model','class="primary wide"')+recorderBox(repeatKey(),segment.text)+
  btn(repeatIndex<p.read_aloud.segments.length-1?'试过了，下一句 →':'试过了，去找一找 →','repeat-next','class="secondary wide"')+btn('回到听故事','repeat-back','class="quiet small"')+coachNote()+'</div>';
 }
 function practiceSummary(isParent){
@@ -109,6 +132,9 @@ function practiceSummary(isParent){
 function soundPanel(){
  return '<details class="sound-panel"><summary>声音测试与排查</summary><p class="small muted">先测试书名。听不到时，检查标签页是否静音、系统音量和输出设备。播放完成只代表浏览器已处理音频，不能检测扬声器是否出声。</p>'+btn('♫ 测试声音','sound-test','class="secondary"')+btn('查看诊断','sound-details','class="quiet"')+btn('导出诊断','sound-export','class="quiet"')+'<pre id="sound-details">点击测试声音后查看结果。</pre></details>';
 }
+function assessmentPanel(){
+ return '<details class="sound-panel"><summary>孩子跟读反馈</summary><p class="small muted">联网时，录音和当前英文句子会送到腾讯云口语评测。口令只保存在这台设备，不写入绘本或导出文件。断网时仍可录音和听回放。</p><p class="small">'+(pronunciationConfig.endpoint?'评测服务已接入':'评测服务正在配置')+'</p><label>家长评测口令<input id="assessment-token" type="password" autocomplete="off" value="'+e(assessmentToken)+'" placeholder="在此设备上设置口令"></label>'+btn('保存口令','save-assessment-token','class="secondary"')+'<p id="assessment-message" class="small" role="status"></p></details>';
+}
 function updateSoundDetails(){const el=document.querySelector('#sound-details');if(el)el.textContent=JSON.stringify(audio.diagnostics(),null,2);}
 
 function readCard(p){
@@ -120,7 +146,7 @@ function questionCard(q){
  let answers='';
  if(choice)answers='<div class="choices">'+q.choices.map(c=>'<div class="choice-row">'+btn('<span class="choice-emoji">'+e(c.emoji||({'Yes':'🙌','No':'🙈','Happy':'😊','Sad':'😔','Sleepy':'😴','A box':'📦','A boat':'⛵','A bed':'🛏️','Dad':'👨','A cat':'🐱','Hide and seek':'🙈','Football':'⚽','Drawing':'🎨','Hiding':'🙈','Eating':'🍎','Sleeping':'💤'}[c.text])||'◯')+'</span><span>'+e(c.text)+'</span>','answer','data-answer="'+e(c.id)+'" class="choice '+(hint&&q.correct_answer===c.id?'suggested':'')+'" '+(solved?'disabled':''))+btn('♫','choice-audio','data-text="'+e(c.text)+'" aria-label="听选项 '+e(c.text)+'" class="choice-listen"')+'</div>').join('')+'</div>';
  if(point)answers='<div class="tap-hint"><span>☝</span><p>Point to the picture</p><small>点一点，找到它</small></div>';
- if(talk)answers='<div class="talk-icon">'+(q.type==='listen_and_repeat'?'🗣️':'💬')+'</div><p class="muted">'+(q.type==='listen_and_repeat'?'听一听，愿意的话跟着说。不打分。':'和爸爸妈妈聊一聊，用中文也可以。')+'</p>'+(q.type==='listen_and_repeat'?recorderBox(q.activity_id):'');
+ if(talk)answers='<div class="talk-icon">'+(q.type==='listen_and_repeat'?'🗣️':'💬')+'</div><p class="muted">'+(q.type==='listen_and_repeat'?'听一听，愿意的话跟着说。':'和爸爸妈妈聊一聊，用中文也可以。')+'</p>'+(q.type==='listen_and_repeat'?recorderBox(q.activity_id,q.tts||q.prompt):'');
  return (progress.practiceIds?.length?'<div class="practice-tag">🌱 再见一次 · 最多 5 题</div>':'<div class="question-filters">'+btn('All','filter','data-filter="all" class="'+(progress.filter==='all'?'selected':'')+'"')+btn('Word Questions','filter','data-filter="word" class="'+(progress.filter==='word'?'selected':'')+'"')+btn('Story Questions','filter','data-filter="story" class="'+(progress.filter==='story'?'selected':'')+'"')+'</div>')+'<div class="card-content"><div class="question-meta"><span>'+(progress.stage==='review'?'STORY REVIEW':point?'POINT & FIND':talk?'TALK TOGETHER':q.category==='word'?'WORD PLAY':'STORY TIME')+'</span><span>'+ (progress.index+1)+' / '+all.length+'</span></div><h2 class="question-title">'+e(q.prompt)+'</h2>'+btn('♫ Listen again','question-audio','class="listen-question"')+answers+'<div class="feedback '+(solved?'success':'')+'" role="status" aria-live="polite">'+e(feedback)+'</div>'+(solved?btn('Next →','next-question','class="primary wide"'):talk?btn(q.type==='listen_and_repeat'?'We tried it ✓':'We talked about it ✓','talk-done','class="primary wide"'):hint?btn('Let’s do it together ✓','help-done','class="secondary wide"'):'')+'<details class="parent-hint"><summary>给家长的小提示</summary><p>'+e(q.parent_note||'先听一遍，再指一指。')+'</p></details></div>';
 }
 let aiPreview=null,aiController=null;
@@ -175,7 +201,7 @@ function editorPage(){return ep===draft.pages.length?draft.pages.at(-1):draft.pa
 function editorActivities(){return ep===draft.pages.length?draft.review:editorPage().activities;}
 function editor(){
  const p=editorPage(),list=editorActivities();ea=Math.min(ea,Math.max(0,list.length-1));eh=Math.min(eh,Math.max(0,p.hotspots.length-1));const a=list[ea],h=p.hotspots[eh];
- return '<main class="parent-main"><div class="title-row"><div><p class="eyebrow">PARENT STUDIO</p><h1>陪孩子，读得刚刚好</h1><p class="muted">审核问题、校准热点、导入声音。修改保存在这台设备上。</p></div>'+btn(activeId===BUILTIN_ID?'保存并应用':'审核后发布这一集','save-editor','class="primary"')+'</div>'+episodeControls()+'<div id="editor-message" role="status"></div><div class="editor-toolbar"><label>编辑页面 <select id="edit-page">'+draft.pages.map((p,i)=>'<option value="'+i+'" '+(i===ep?'selected':'')+'>'+e(activeId===BUILTIN_ID?(i===0?'封面':'故事第 '+i+' 页'):'第 '+(i+1)+' 页')+'</option>').join('')+'<option value="'+draft.pages.length+'" '+(ep===draft.pages.length?'selected':'')+'>全书复习 / 亲子讨论</option></select></label>'+btn('导出 Lesson JSON','export','class="secondary"')+'<label class="file-label">导入 Lesson JSON<input type="file" id="import-lesson" accept=".json,application/json"></label></div><div class="editor-grid"><section class="book-panel">'+picture(p,true)+'<div class="editor-padding"><p>选择热点后，在图上拖出新矩形即可校准。坐标按整张原图归一化。</p><label>热点 <select id="edit-hotspot">'+p.hotspots.map((h,i)=>'<option value="'+i+'" '+(i===eh?'selected':'')+'>'+e(h.label)+'</option>').join('')+'</select></label>'+ (h?'<label>名称<input id="hotspot-label" value="'+e(h.label)+'"></label><div class="coordinates">'+h.bbox.map((n,i)=>'<label>'+['X','Y','宽','高'][i]+'<input type="number" min="0" max="1" step="0.01" data-coordinate="'+i+'" value="'+n+'"></label>').join('')+'</div>':'')+btn('+ 添加热点','add-hotspot','class="secondary"')+'<div class="divider"></div>'+voiceStudio()+soundPanel()+'<h3>导入原版录音</h3>'+audioSelect(a,p)+'<p class="small muted">支持 MP3 / WAV / M4A / OGG，最大 30 MB。只存入本机浏览器，不上传。整页朗读优先使用这个文件。</p><label class="file-label">选择音频文件<input id="import-audio" type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg"></label><p id="original-status" class="small"></p>'+btn('试听所选音频','preview-original','class="secondary"')+btn('移除所选音频','remove-original','class="quiet"')+'</div></section><section class="editor-form">'+pageTextEditor(p)+'<label>问题 <select id="edit-activity">'+list.map((a,i)=>'<option value="'+i+'" '+(i===ea?'selected':'')+'>'+e((a.reviewed===false?'待审核 · ':'')+a.prompt)+'</option>').join('')+'</select></label>'+ (a?'<label>英文问题<input id="edit-prompt" value="'+e(a.prompt)+'"></label><label>给家长的中文提示<textarea id="edit-note" rows="3">'+e(a.parent_note||'')+'</textarea></label><div class="checks"><label><input type="checkbox" id="edit-enabled" '+(a.enabled!==false?'checked':'')+'> 保留 / 启用</label><label><input type="checkbox" id="edit-reviewed" '+(a.reviewed!==false?'checked':'')+'> 已审核，儿童可见</label></div><p class="small muted">题型：'+e(a.type)+'</p>'+(a.type==='multiple_choice'?'<fieldset><legend>选项与正确答案</legend>'+a.choices.map((c,i)=>'<label class="option-edit"><input type="radio" name="correct" data-correct="'+i+'" '+(a.correct_answer===c.id?'checked':'')+'><input data-choice="'+i+'" value="'+e(c.text)+'"></label>').join('')+'</fieldset>':'')+(a.type==='point_and_find'?'<label>正确热点<select id="edit-target">'+p.hotspots.map(h=>'<option value="'+e(h.id)+'" '+(a.target_hotspots.includes(h.id)?'selected':'')+'>'+e(h.label)+'</option>').join('')+'</select></label>':'')+btn('删除这道题','delete-activity','class="quiet"'):'<p>本页暂无问题，可以新增。</p>')+'<div class="divider"></div><label>新增题型<select id="new-type"><option value="multiple_choice">选择题</option><option value="point_and_find">Point & Find</option><option value="parent_discussion">亲子讨论</option></select></label>'+btn('+ 新增待审核问题','add-activity','class="secondary"')+'<div class="divider"></div><p class="small muted">编辑会即时更新草稿；点击页面顶部的保存 / 发布按钮后进入儿童课程。新增题目需勾选「已审核」。退出时可选择保存或放弃。</p><p class="small muted">原版音频单独保存在浏览器，不包含在导出的 JSON 中。课程和进度可导出备份，清理浏览器数据会删除本机记录。</p>'+btn('导出进度','export-progress','class="quiet"')+practiceSummary(true)+'</section></div></main>';
+ return '<main class="parent-main"><div class="title-row"><div><p class="eyebrow">PARENT STUDIO</p><h1>陪孩子，读得刚刚好</h1><p class="muted">审核问题、校准热点、导入声音。修改保存在这台设备上。</p></div>'+btn(activeId===BUILTIN_ID?'保存并应用':'审核后发布这一集','save-editor','class="primary"')+'</div>'+episodeControls()+'<div id="editor-message" role="status"></div><div class="editor-toolbar"><label>编辑页面 <select id="edit-page">'+draft.pages.map((p,i)=>'<option value="'+i+'" '+(i===ep?'selected':'')+'>'+e(activeId===BUILTIN_ID?(i===0?'封面':'故事第 '+i+' 页'):'第 '+(i+1)+' 页')+'</option>').join('')+'<option value="'+draft.pages.length+'" '+(ep===draft.pages.length?'selected':'')+'>全书复习 / 亲子讨论</option></select></label>'+btn('导出 Lesson JSON','export','class="secondary"')+'<label class="file-label">导入 Lesson JSON<input type="file" id="import-lesson" accept=".json,application/json"></label></div><div class="editor-grid"><section class="book-panel">'+picture(p,true)+'<div class="editor-padding"><p>选择热点后，在图上拖出新矩形即可校准。坐标按整张原图归一化。</p><label>热点 <select id="edit-hotspot">'+p.hotspots.map((h,i)=>'<option value="'+i+'" '+(i===eh?'selected':'')+'>'+e(h.label)+'</option>').join('')+'</select></label>'+ (h?'<label>名称<input id="hotspot-label" value="'+e(h.label)+'"></label><div class="coordinates">'+h.bbox.map((n,i)=>'<label>'+['X','Y','宽','高'][i]+'<input type="number" min="0" max="1" step="0.01" data-coordinate="'+i+'" value="'+n+'"></label>').join('')+'</div>':'')+btn('+ 添加热点','add-hotspot','class="secondary"')+'<div class="divider"></div>'+voiceStudio()+soundPanel()+assessmentPanel()+'<h3>导入原版录音</h3>'+audioSelect(a,p)+'<p class="small muted">支持 MP3 / WAV / M4A / OGG，最大 30 MB。只存入本机浏览器，不上传。整页朗读优先使用这个文件。</p><label class="file-label">选择音频文件<input id="import-audio" type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg"></label><p id="original-status" class="small"></p>'+btn('试听所选音频','preview-original','class="secondary"')+btn('移除所选音频','remove-original','class="quiet"')+'</div></section><section class="editor-form">'+pageTextEditor(p)+'<label>问题 <select id="edit-activity">'+list.map((a,i)=>'<option value="'+i+'" '+(i===ea?'selected':'')+'>'+e((a.reviewed===false?'待审核 · ':'')+a.prompt)+'</option>').join('')+'</select></label>'+ (a?'<label>英文问题<input id="edit-prompt" value="'+e(a.prompt)+'"></label><label>给家长的中文提示<textarea id="edit-note" rows="3">'+e(a.parent_note||'')+'</textarea></label><div class="checks"><label><input type="checkbox" id="edit-enabled" '+(a.enabled!==false?'checked':'')+'> 保留 / 启用</label><label><input type="checkbox" id="edit-reviewed" '+(a.reviewed!==false?'checked':'')+'> 已审核，儿童可见</label></div><p class="small muted">题型：'+e(a.type)+'</p>'+(a.type==='multiple_choice'?'<fieldset><legend>选项与正确答案</legend>'+a.choices.map((c,i)=>'<label class="option-edit"><input type="radio" name="correct" data-correct="'+i+'" '+(a.correct_answer===c.id?'checked':'')+'><input data-choice="'+i+'" value="'+e(c.text)+'"></label>').join('')+'</fieldset>':'')+(a.type==='point_and_find'?'<label>正确热点<select id="edit-target">'+p.hotspots.map(h=>'<option value="'+e(h.id)+'" '+(a.target_hotspots.includes(h.id)?'selected':'')+'>'+e(h.label)+'</option>').join('')+'</select></label>':'')+btn('删除这道题','delete-activity','class="quiet"'):'<p>本页暂无问题，可以新增。</p>')+'<div class="divider"></div><label>新增题型<select id="new-type"><option value="multiple_choice">选择题</option><option value="point_and_find">Point & Find</option><option value="parent_discussion">亲子讨论</option></select></label>'+btn('+ 新增待审核问题','add-activity','class="secondary"')+'<div class="divider"></div><p class="small muted">编辑会即时更新草稿；点击页面顶部的保存 / 发布按钮后进入儿童课程。新增题目需勾选「已审核」。退出时可选择保存或放弃。</p><p class="small muted">原版音频单独保存在浏览器，不包含在导出的 JSON 中。课程和进度可导出备份，清理浏览器数据会删除本机记录。</p>'+btn('导出进度','export-progress','class="quiet"')+practiceSummary(true)+'</section></div></main>';
 }
 function voiceStudio(){
  return '<h3>选择讲故事的声音</h3><p class="small muted">内置声音包适用于 Hide and Seek 的已有文本，新增正文需另配音频。AI 合成声音，非出版社原版录音；试听不调用云服务。</p>'+
@@ -215,20 +241,26 @@ async function dispatch(action,b){
  case 'sound-test':await audio.play(page().read_aloud.segments);updateSoundDetails();break;
  case 'sound-details':updateSoundDetails();break;
  case 'sound-export':exportJson(audio.diagnostics(),'sound-diagnostics.json');break;
- case 'repeat-start':if(!page().read_aloud.segments.length)return;audio.stop();repeatMode=true;repeatIndex=0;render();break;
- case 'repeat-model':if(recorder.state!=='idle'){recorder.cancel();render();}audio.play([page().read_aloud.segments[repeatIndex]]);break;
+ case 'save-assessment-token':{
+  assessmentToken=document.querySelector('#assessment-token')?.value.trim()||'';
+  try{if(assessmentToken)localStorage.setItem('story-garden-assessment-token',assessmentToken);else localStorage.removeItem('story-garden-assessment-token');document.querySelector('#assessment-message').textContent=assessmentToken?'已保存在这台设备。':'已清除口令。';}
+  catch{document.querySelector('#assessment-message').textContent='这台设备未能保存口令。';}
+  break;
+ }
+ case 'repeat-start':if(!page().read_aloud.segments.length)return;audio.stop();repeatMode=true;repeatIndex=0;repeatCue=false;render();break;
+ case 'repeat-model':if(recorder.state!=='idle'){recorder.cancel();render();}audio.play([page().read_aloud.segments[repeatIndex]],{onComplete:()=>{if(repeatMode&&!parent&&!libraryOpen){repeatCue=true;render();}}});break;
  case 'repeat-back':recorder.cancel();audio.stop();repeatMode=false;render();break;
  case 'repeat-next':{
   logResult({activity_id:repeatKey(),prompt:page().read_aloud.segments[repeatIndex].text,type:'listen_and_repeat'},{attempts:0,assisted:false});
   recorder.cancel();audio.stop();
-  if(repeatIndex<page().read_aloud.segments.length-1){repeatIndex++;render();}
+  if(repeatIndex<page().read_aloud.segments.length-1){repeatIndex++;repeatCue=false;render();audio.play([page().read_aloud.segments[repeatIndex]],{onComplete:()=>{if(repeatMode&&!parent&&!libraryOpen){repeatCue=true;render();}}});}
   else change(()=>{progress.mode='play';progress.index=0;progress.filter='all';});
   break;
  }
- case 'record-start':audio.stop();await recorder.start(b.dataset.key);break;
+ case 'record-start':audio.stop();recordTargets.set(b.dataset.key,b.dataset.text);pronunciation.delete(b.dataset.key);await recorder.start(b.dataset.key);break;
  case 'record-stop':recorder.stop();break;
  case 'record-play':{const clip=recorder.clips.get(b.dataset.key);if(clip)audio.play([],{urls:[clip],localRecording:true});break;}
- case 'record-clear':audio.stop();recorder.clear(b.dataset.key);break;
+ case 'record-clear':audio.stop();pronunciation.delete(b.dataset.key);recorder.clear(b.dataset.key);break;
  case 'practice-review':if(parent){if(JSON.stringify(draft)!==JSON.stringify(lesson)){editorMessage('请先保存编辑，再进入复习。');break;}parent=false;draft=null;}startReview();break;
  case 'learning-export':exportJson({generatedAt:new Date().toISOString(),progress,history,notice:'本机练习记录，不是语言能力或发音评测。'},'hide-and-seek.learning.json');break;
 
@@ -240,7 +272,7 @@ async function dispatch(action,b){
  case 'read':change(()=>{progress.mode='read';progress.stage='book';});break;
  case 'play':change(()=>{progress.mode='play';progress.index=0;progress.filter='all';});break;
  case 'filter':change(()=>{progress.filter=b.dataset.filter;progress.index=0;});break;
- case 'listen':if(!page().read_aloud.segments.length){audio.statusText('这一页没有正文，和孩子一起看看图吧。');break;}audio.play(page().read_aloud.segments,{pageId:page().page_id,onComplete:markRead});break;
+ case 'listen':listenToPage();break;
  case 'stop':audio.stop();break;
  case 'slow':audio.slow=!audio.slow;if(audio.audio)audio.audio.playbackRate=audio.slow?.82:1;b.setAttribute('aria-pressed',String(audio.slow));b.textContent=audio.slow?'🐢 Slow ✓':'🐢 Slow';break;
  case 'read-together':markRead();break;
