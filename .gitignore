@@ -2,6 +2,11 @@
 node_modules/
 tools/
 dist/
+android/app/src/main/assets/
+android/.gradle/
+android/build/
+android/app/build/
+android/app/signing.p12
 .runtime/
 __pycache__/
 .pytest_cache/
