@@ -8,7 +8,7 @@ const {signedUrl,evaluate}=require('../cloudfunctions/pronunciation/soe.js');
 
 test('SOE URL signs the raw sorted parameters without exposing the key',()=>{
  const url=signedUrl({appid:'123',secretId:'AKIDexample',secretKey:'secret',text:'Can you see me?',now:1000,nonce:42,voiceId:'voice-1'});
- const parsed=new URL(url),params=[...parsed.searchParams.entries()].filter(([key])=>key!=='signature').sort(([a],[b])=>a.localeCompare(b,'en'));
+ const parsed=new URL(url),params=[...parsed.searchParams.entries()].filter(([key])=>key!=='signature').sort(([a],[b])=>a<b?-1:a>b?1:0);
  const raw=parsed.host+parsed.pathname+'?'+params.map(([key,value])=>key+'='+value).join('&');
  assert.equal(parsed.searchParams.get('signature'),createHmac('sha1','secret').update(raw).digest('base64'));
  assert.equal(parsed.searchParams.get('ref_text'),'Can you see me?');

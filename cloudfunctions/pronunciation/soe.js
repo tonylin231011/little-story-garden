@@ -3,7 +3,7 @@ const {createHmac,randomUUID,randomInt}=require('node:crypto');
 function signedUrl({appid,secretId,secretKey,text,now=Math.floor(Date.now()/1000),nonce=randomInt(1,1000000000),voiceId=randomUUID()}){
  const path=`soe.cloud.tencent.com/soe/api/${appid}`;
  const params={eval_mode:1,expired:now+60,nonce,rec_mode:1,ref_text:text,score_coeff:'1.0',secretid:secretId,server_engine_type:'16k_en',timestamp:now,voice_format:1,voice_id:voiceId};
- const entries=Object.entries(params).sort(([a],[b])=>a.localeCompare(b,'en'));
+ const entries=Object.entries(params).sort(([a],[b])=>a<b?-1:a>b?1:0);
  const original=path+'?'+entries.map(([key,value])=>key+'='+value).join('&');
  const signature=createHmac('sha1',secretKey).update(original).digest('base64');
  return 'wss://'+path+'?'+entries.map(([key,value])=>encodeURIComponent(key)+'='+encodeURIComponent(value)).join('&')+'&signature='+encodeURIComponent(signature);
