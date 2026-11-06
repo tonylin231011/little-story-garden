@@ -16,7 +16,12 @@ function evaluate(wav,text,credentials,WebSocketClass){
   function finish(error,result){if(settled)return;settled=true;clearTimeout(timer);if(socket.readyState===WebSocketClass.OPEN)socket.close();else if(socket.readyState===WebSocketClass.CONNECTING)socket.terminate();error?reject(error):resolve(result);}
   socket.on('message',raw=>{
    let message;try{message=JSON.parse(String(raw));}catch{return finish(Error('评测返回了无效数据'));}
-   if(message.code!==0)return finish(Error('腾讯云评测错误 '+message.code));
+   if(message.code!==0){
+    const descriptions={4003:'腾讯云口语评测（新版）尚未开通',4004:'腾讯云口语评测额度已用完'};
+    const error=Error(descriptions[message.code]||'腾讯云口语评测暂时不可用（'+message.code+'）');
+    error.soeCode=message.code;
+    return finish(error);
+   }
    if(!started){started=true;socket.send(wav);socket.send(JSON.stringify({type:'end'}));return;}
    if(message.result&&typeof message.result==='object')latest=message.result;
    if(message.final===1){

@@ -30,3 +30,12 @@ test('SOE waits for handshake and final result before returning assessment',asyn
  const result=await evaluate(wav,'Can you see me?',{appid:'123',secretId:'AKIDexample',secretKey:'secret'},FakeSocket);
  assert.equal(result.score,89);assert.equal(result.completion,1);
 });
+
+test('SOE reports unopened service in plain language',async()=>{
+ class FakeSocket extends EventEmitter{
+  static OPEN=1;static CONNECTING=0;
+  constructor(){super();this.readyState=1;queueMicrotask(()=>this.emit('message',Buffer.from('{"code":4003}')));}
+  close(){this.readyState=3;}
+ }
+ await assert.rejects(evaluate(Buffer.from('RIFFtest'),'Hide and Seek.',{appid:'123',secretId:'AKIDexample',secretKey:'secret'},FakeSocket),error=>error.soeCode===4003&&/尚未开通/.test(error.message));
+});

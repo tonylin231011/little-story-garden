@@ -41,8 +41,8 @@ export async function evaluatePronunciation(endpoint,blob,text,token){
   const wav=await pronunciationWav(blob),bytes=new Uint8Array(await wav.arrayBuffer());
   let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
   const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({audio:btoa(binary),text}),signal:controller.signal,cache:'no-store'});
-  if(!response.ok)throw Error('评测暂时不可用（'+response.status+'）');
-  const result=await response.json();
+  const result=await response.json().catch(()=>null);
+  if(!response.ok)throw Error(result?.error||'评测暂时不可用（'+response.status+'）');
   if(!result||typeof result.score!=='number'||typeof result.completion!=='number')throw Error('评测结果格式有误');
   return result;
  }finally{clearTimeout(timer);}

@@ -25,6 +25,6 @@ const server=http.createServer(async(req,res)=>{
   if(wav.length<8044||wav.length>520000||wav.toString('ascii',0,4)!=='RIFF'||wav.toString('ascii',8,12)!=='WAVE')throw Error('录音格式不正确');
   const result=await evaluate(wav,text,credentials,WebSocket);
   respond(res,200,result,origin);
- }catch(error){respond(res,400,{error:error.message},origin);}
+ }catch(error){respond(res,error.soeCode===4003?503:error.soeCode===4004?429:error.soeCode?502:400,{error:error.message},origin);}
 });
 server.listen(9000,'0.0.0.0');
