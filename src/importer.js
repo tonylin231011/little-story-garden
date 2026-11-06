@@ -1,4 +1,5 @@
 import {MAX_PAGES} from './library.js';
+import {siteAsset} from './paths.js';
 const MAX_BYTES=80*1024*1024;
 function canvasBlob(canvas){return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(Error('图片转换失败')),'image/jpeg',.94));}
 export async function importFiles(files,onProgress=()=>{},cancelled=()=>false){
@@ -10,9 +11,9 @@ export async function importFiles(files,onProgress=()=>{},cancelled=()=>false){
  if(!pdfs.length&&list.length>MAX_PAGES)throw Error('每集最多 '+MAX_PAGES+' 页。');
  const results=[];
  if(pdfs.length){
-  const pdfjs=await import('/vendor/pdfjs/pdf.mjs');
-  pdfjs.GlobalWorkerOptions.workerSrc='/vendor/pdfjs/pdf.worker.mjs';
-  const task=pdfjs.getDocument({data:new Uint8Array(await pdfs[0].arrayBuffer()),isEvalSupported:false,cMapUrl:'/vendor/pdfjs/cmaps/',cMapPacked:true,standardFontDataUrl:'/vendor/pdfjs/standard_fonts/',wasmUrl:'/vendor/pdfjs/wasm/',iccUrl:'/vendor/pdfjs/iccs/'});
+  const pdfjs=await import(siteAsset('/vendor/pdfjs/pdf.mjs'));
+  pdfjs.GlobalWorkerOptions.workerSrc=siteAsset('/vendor/pdfjs/pdf.worker.mjs');
+  const task=pdfjs.getDocument({data:new Uint8Array(await pdfs[0].arrayBuffer()),isEvalSupported:false,cMapUrl:siteAsset('/vendor/pdfjs/cmaps/'),cMapPacked:true,standardFontDataUrl:siteAsset('/vendor/pdfjs/standard_fonts/'),wasmUrl:siteAsset('/vendor/pdfjs/wasm/'),iccUrl:siteAsset('/vendor/pdfjs/iccs/')});
   task.onPassword=()=>task.destroy();
   try{
    const pdf=await task.promise;

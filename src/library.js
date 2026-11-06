@@ -1,3 +1,4 @@
+import {siteAsset} from './paths.js';
 export const BUILTIN_ID='ort_hide_and_seek_l1plus_v1';
 export const LIBRARY_KEY='story-garden-library';
 export const MAX_PAGES=40;
@@ -26,7 +27,7 @@ export function makeDraft(title,inputs,id=crypto.randomUUID()){
 }
 export async function resolveImages(lesson){
  const entries=await Promise.all(Object.values(lesson.assets.images).map(async asset=>{
-  if(!asset.source.startsWith('local:'))return [asset.source,asset.source];
+  if(!asset.source.startsWith('local:'))return [asset.source,siteAsset(asset.source)];
   const blob=await assetBlob(asset.source);if(!blob)throw Error('这一集的图片缺失，请从原始 PDF 或截图重新制作；Lesson JSON 不包含图片。');
   return [asset.source,URL.createObjectURL(blob)];
  }));

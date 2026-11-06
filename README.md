@@ -2,13 +2,13 @@
 
 一本书就是一集。内置《Hide and Seek》的六张真实页面和两套完整音频，也可以导入自己的 PDF 或截图，制作新的课程。
 
-## 安卓平板离线版
+## 安卓平板网页版
 
-安卓安装包包含当前内置课程、真实页面和两套语音。安装后从「小小绘本花园」图标打开，无需家里的电脑或网络。平板上的书架、导入音频与学习进度只保存在该平板，和电脑、其它浏览器互不自动同步。页面中的云端视觉 AI 生成功能在离线版不可用；家长仍可手动导入 PDF / 截图、编辑课程。跟读录音仅在授予麦克风权限后使用。
+打开 https://tonylin231011.github.io/little-story-garden/ 即可在线阅读，不需要家里的电脑开机。首次使用请在有网时打开，等页面及内置六页图片、两套语音下载完成；随后可在 Chrome 菜单中点「添加到主屏幕」，外出无网时也能从图标打开。网站由 [.github/workflows/publish-site.yml](.github/workflows/publish-site.yml) 随 `main` 分支自动发布。
 
-安装包由仓库的 [Build offline Android reader](.github/workflows/android-apk.yml) 工作流构建：在 GitHub 仓库的 Actions 页面打开最新一次成功运行，下载 `little-story-garden-offline-apk`，解压后把 `app-release.apk` 传到平板，点选安装。安卓如提示安装来源限制，按系统提示仅对本次文件来源授权。以后更新时在原应用上直接安装新版；不要先卸载，否则平板本地记录会消失。首次生成签名的私钥只保存在本机 `.runtime/android-signing/` 和仓库加密的 Actions Secrets，不纳入 Git。
+网站是公开地址，内置课程图片和音频也可被访问。学习进度、家长编辑的课程及平板导入的图片 / 音频仅保存在当前浏览器，不自动同步到电脑；清理网站数据会删除这些内容。网站支持手动导入 PDF / 截图制作新集，但视觉 AI 自动生成需要本机 Node 服务，在线静态站点不提供这个功能。
 
-本机没有安卓 SDK，APK 构建由 GitHub Actions 执行。平板若无法打开课程，请先更新 Android System WebView / Chrome；建议 Android 8.0 或更新版本。
+断网前可用飞行模式验证：已安装的网站应能打开内置绘本、图片和语音。若首次下载未完成，回到联网状态重新打开并稍等；安卓系统的浏览器数据清理可能移除离线资源。
 
 ## 本机启动
 

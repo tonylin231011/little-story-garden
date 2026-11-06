@@ -1,4 +1,5 @@
 import {pcmWav} from './wav.js';
+import {siteAsset} from './paths.js';
 function database(){return new Promise((resolve,reject)=>{const r=indexedDB.open('hide-and-seek-audio',1);r.onupgradeneeded=()=>r.result.createObjectStore('originals');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
 export async function originalAudio(key,blob){
  const db=await database();try{return await new Promise((resolve,reject)=>{
@@ -34,13 +35,13 @@ export class AudioAdapter{
  }
  setVoice(manifest,name){this.stop();this.manifest=manifest;this.voiceName=name;}
  async buffer(input){
-  const url=compatible(input);
+  const url=siteAsset(compatible(input));
   if(typeof url==='string'&&this.cache.has(url))return this.cache.get(url);
   let bytes;
   if(input instanceof Blob)bytes=await input.arrayBuffer();
   else{
    let response=await fetch(url);
-   if(!response.ok&&url!==input)response=await fetch(input);
+   if(!response.ok&&url!==input)response=await fetch(siteAsset(input));
    if(!response.ok)throw Error('音频文件读取失败（'+response.status+'）');
    bytes=await response.arrayBuffer();
   }
@@ -68,7 +69,7 @@ export class AudioAdapter{
  }
  async mediaPlay(input,token){
   if(token!==this.token)return;
-  const blob=input instanceof Blob,src=blob?URL.createObjectURL(input):compatible(input);
+  const blob=input instanceof Blob,src=blob?URL.createObjectURL(input):siteAsset(compatible(input));
   const audio=this.audio||(this.audio=new Audio());audio.preload='auto';audio.src=src;audio.playbackRate=this.slow?.82:1;
   this.last.backend='HTML Audio · WAV';
   try{

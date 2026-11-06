@@ -1,6 +1,7 @@
 import {assetBlob} from './library.js';
 import {validateLesson} from './core.js';
 export async function aiStatus(){
+ if(document.querySelector('meta[name="story-static"]'))throw Error('在线网站暂不提供云端 AI 生成；可以手动制作新课程。');
  const response=await fetch('/api/ai/status');
  if(!response.ok)throw Error('AI 接口尚不可用，请重新启动新版阅读器。');
  return response.json();

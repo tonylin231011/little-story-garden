@@ -4,10 +4,11 @@ import {LocalRecorder,recordResult,latestResults,dueResults,resultLabel} from '.
 import {BUILTIN_ID,storageFor,getEpisode,saveEpisode,resolveImages,revokeImages,publicationProblems,splitText,assetBlob} from './library.js';
 import {LibraryView} from './library-ui.js';
 import {generateEpisode,aiStatus} from './generation.js';
+import {siteAsset} from './paths.js';
 let activeId=BUILTIN_ID,STORAGE=LEGACY_STORAGE,libraryOpen=false,activeRecord=null,imageSources=new Map(),aiBusy=false;
 const root=document.querySelector('#app');
-async function optionalJson(url,fallback){try{const r=await fetch(url);return r.ok?await r.json():fallback;}catch{return fallback;}}
-const [base,manifest,voiceConfig,voicePreviews]=await Promise.all([fetch('/lesson.json').then(r=>r.json()),fetch('/audio/manifest.json').then(r=>r.json()),optionalJson('/audio/voices.json',{default:'',voices:[]}),optionalJson('/audio/previews.json',[])]);
+async function optionalJson(url,fallback){try{const r=await fetch(siteAsset(url));return r.ok?await r.json():fallback;}catch{return fallback;}}
+const [base,manifest,voiceConfig,voicePreviews]=await Promise.all([fetch(siteAsset('/lesson.json')).then(r=>r.json()),fetch(siteAsset('/audio/manifest.json')).then(r=>r.json()),optionalJson('/audio/voices.json',{default:'',voices:[]}),optionalJson('/audio/previews.json',[])]);
 let selectedVoice=voiceConfig.default,voiceLoadToken=0;
 try{const storedVoice=localStorage.getItem(STORAGE+'-voice');if(voiceConfig.voices.some(v=>v.id===storedVoice))selectedVoice=storedVoice;}catch{}
 const initialVoice=voiceConfig.voices.find(v=>v.id===selectedVoice);
@@ -54,13 +55,13 @@ function answer(ok){if(solved)return;if(ok)finishAnswer();else{attempts++;logRes
 function endBook(){progress.mode='play';progress.filter='all';progress.index=0;if(eligible(lesson.review).length)progress.stage='review';else{progress.stage='complete';progress.finished=true;}}
 function nextPage(){change(()=>{if(progress.page<lastPage()){progress.page++;progress.mode='read';progress.index=0;progress.filter='all';}else endBook();});}
 function nextQuestion(){change(()=>{if(progress.index<questions().length-1)progress.index++;else if(progress.stage==='review'){progress.stage='complete';progress.finished=true;}else if(progress.filter!=='all'){progress.filter='all';progress.mode='read';progress.index=0;}else if(progress.page<lastPage()){progress.page++;progress.mode='read';progress.index=0;}else endBook();});}
-function imageUrl(p){const source=Object.values((parent?draft:lesson).assets.images).find(a=>a.asset_id===p.image_asset).source;return imageSources.get(source)||source;}
+function imageUrl(p){const source=Object.values((parent?draft:lesson).assets.images).find(a=>a.asset_id===p.image_asset).source;return imageSources.get(source)||siteAsset(source);}
 function boxStyle(b){return 'left:'+b[0]*100+'%;top:'+b[1]*100+'%;width:'+b[2]*100+'%;height:'+b[3]*100+'%';}
 function picture(p,editing=false){
  const q=parent?null:current();
  return '<div class="picture-stage"><div class="image-wrap '+(editing?'editable':'')+'" id="'+(editing?'editor-picture':'picture')+'"><img draggable="false" src="'+e(imageUrl(p))+'" alt="'+e(bookTitle()+' · '+p.page_id)+'">'+p.hotspots.map((h,i)=>'<button type="button" class="hotspot '+(editing?'box':hint&&q?.target_hotspots?.includes(h.id)?'reveal':'')+' '+(editing&&eh===i?'selected':'')+'" data-hotspot="'+i+'" style="'+boxStyle(h.bbox)+'" aria-label="'+e(h.label)+'">'+(editing?'<span>'+e(h.label)+'</span>':'')+'</button>').join('')+'<div id="draw-box"></div></div></div>';
 }
-function header(){return '<header><a class="brand" href="/" aria-label="Story Garden 首页"><span class="brand-icon">✿</span><span>little story garden<small>A little story. A big adventure.</small></span></a>'+'<div class="header-actions">'+btn('📚 书架','library','class="quiet"')+btn('♫ 开启声音','enable-audio','class="quiet"')+btn(parent?'← 回到绘本':'⚙ 家长区','parent','class="quiet"')+'</div>'+'</header>';}
+function header(){return '<header><a class="brand" href="'+siteAsset('/')+'" aria-label="Story Garden 首页"><span class="brand-icon">✿</span><span>little story garden<small>A little story. A big adventure.</small></span></a>'+'<div class="header-actions">'+btn('📚 书架','library','class="quiet"')+btn('♫ 开启声音','enable-audio','class="quiet"')+btn(parent?'← 回到绘本':'⚙ 家长区','parent','class="quiet"')+'</div>'+'</header>';}
 function render(){
  root.innerHTML=header()+(libraryOpen?shelf.render():parent?editor():child())+'<div id="audio-status" class="audio-status" role="status" aria-live="polite"></div>'+(notice?'<div class="notice" role="status">'+e(notice)+'</div>':'');
  if(libraryOpen){shelf.bind(root);root.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>dispatch(b.dataset.action,b).catch(err=>{notice='操作未完成：'+err.message;render();}));return;}bind();const status=document.querySelector('#audio-status');if(status)status.textContent=audio.status;if(parent)bindEditor();
@@ -185,7 +186,7 @@ async function selectVoice(id){
  const config=voiceConfig.voices.find(v=>v.id===id);if(!config)return;
  const ticket=++voiceLoadToken;audio.stop();
  try{
-  const response=await fetch(config.manifest);
+  const response=await fetch(siteAsset(config.manifest));
   if(!response.ok)throw Error('语音包暂不可用');
   const mapping=await response.json();
   if(ticket!==voiceLoadToken)return;
@@ -317,6 +318,9 @@ function bindEditor(){
 }
 const remembered=stored('story-garden-active');if(typeof remembered==='string'&&remembered!==BUILTIN_ID){try{await openEpisode(remembered);}catch{notice='上次的课程无法打开，已返回示例绘本。';}}
 render();
+if(document.querySelector('meta[name="story-static"]')&&'serviceWorker' in navigator){
+ navigator.serviceWorker.register(siteAsset('/sw.js'),{scope:siteAsset('/'),updateViaCache:'none'}).catch(()=>{});
+}
 
 
 
